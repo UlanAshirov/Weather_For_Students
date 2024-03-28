@@ -11,6 +11,7 @@ import androidx.lifecycle.ViewModelProvider
 import com.ulan.weatherapp_for_15_1j.R
 import com.ulan.weatherapp_for_15_1j.databinding.ActivityMainBinding
 import com.ulan.weatherapp_for_15_1j.ui.loadImage
+import com.ulan.weatherapp_for_15_1j.ui.search.SearchBottomSheetFragment
 import dagger.hilt.android.AndroidEntryPoint
 import java.time.Instant
 import java.time.LocalDateTime
@@ -26,7 +27,7 @@ class MainActivity : AppCompatActivity() {
     private val viewModel: WeatherViewModel by lazy {
         ViewModelProvider(this)[WeatherViewModel::class.java]
     }
-
+    private var cityName = "Bishkek"
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
@@ -37,8 +38,12 @@ class MainActivity : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
-        viewModel.getCurrentWeather()
+        openDialog()
+        viewModel.getCurrentWeather(cityName)
+        observer()
+    }
 
+    private fun observer() {
         viewModel.liveData.observe(this) {
             binding.btnChangeCountry.text = "${it.location.country}, ${it.location.name}"
             binding.tvTemp.text = it.current.tempC.toString()
@@ -76,7 +81,16 @@ class MainActivity : AppCompatActivity() {
         }
         handler.post(runnable)
     }
-
+    private fun openDialog() {
+        binding.btnChangeCountry.setOnClickListener {
+            SearchBottomSheetFragment(this::searchByName).show(supportFragmentManager, "MyCustomDialog")
+        }
+    }
+    private fun searchByName(cityName: String) {
+        this.cityName = cityName
+        viewModel.getCurrentWeather(cityName)
+        observer()
+    }
     private fun updateTime(time: String) {
         binding.tvDatetime.text = time
     }
